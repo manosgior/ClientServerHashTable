@@ -1,7 +1,7 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
-#define OPS 50
+#define OPS 1000
 
 const char *name = "buffer";
 

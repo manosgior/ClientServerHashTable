@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <pthread.h>
 #include "Utils.h"
 
 int safeCounterIncrement(Buffer *buffer) {
@@ -43,10 +44,10 @@ int main(int argc, char **argv) {
 	srand(time(NULL));
 	source.isReady = 0;
 
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 500; i++) {
 		index = safeCounterIncrement(buffer);
 		dest = &(buffer->commands[index]);
-
+		
 		while (__atomic_load_n(&(buffer->commands[index].isReady), __ATOMIC_SEQ_CST) == 1) {}		
 		
 		strcpy(source.command, commands[rand() % 3]);
@@ -54,7 +55,7 @@ int main(int argc, char **argv) {
 		source.value = (void *) getpid();
 		memcpy(dest, &source, sizeof (struct commandBuffer));
 		__atomic_store_n(&(dest->isReady), 1, __ATOMIC_SEQ_CST);
-		//sleep(1);
+		sleep(0.5);
 	}	
 
 	return 0;
