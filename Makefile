@@ -1,6 +1,5 @@
 CFLAGS= -pthread
 LIBS= -lrt
-.PHONY: hash
 
 application: server client
 
@@ -12,6 +11,6 @@ client: Client.c
 
 HashTable.o: HashTable.c HashTable.h
 	gcc $(CFLAGS) -c HashTable.c
-	
+
 clean:
-	rm -f hash server client *.o
+	rm -f server client *.o

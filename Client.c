@@ -2,68 +2,61 @@
 #include <stdlib.h> 
 #include <string.h>
 #include <fcntl.h>
+#include <time.h>
 #include <sys/shm.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "Utils.h"
 
-typedef struct commandBuffer {
-	char command[8];
-	int key;
-	void *value;
-} Command;
+int safeCounterIncrement(Buffer *buffer) {
+	int tmp = 0;
 
-void errorExit(const char *msg) {
-	perror(msg);
-	exit(-1);
+	pthread_mutex_lock(&(buffer->lock));
+	if (buffer->counter == OPS - 1)
+		buffer->counter = 0;
+	else
+		buffer->counter++;
+	
+	tmp = buffer->counter;
+	pthread_mutex_unlock(&(buffer->lock));
+
+	return tmp;
 }
 
-int main(int argc, char **argv) {	
-	const char *name = "buffer";	
-	Command *dest, source;
-	char *commands[3] = {"insert", "delete", "get"};
-	int fd;		
+int main(int argc, char **argv) {		
+	Buffer *buffer;
+	Command source, *dest;
+	char *commands[3] = {"insert", "get", "delete"};
+	int fd, index;		
 	
-	fd = shm_open(name, O_RDWR, 0666);
-	ftruncate(fd, sizeof(struct commandBuffer)); 
+	fd = shm_open(name, O_RDWR, 0666);	 
 	
 	if (fd < 0)
 		errorExit("Error in shm_open:");
 		
-	dest = mmap(NULL, sizeof(struct commandBuffer), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	buffer = mmap(NULL, sizeof(struct Buffer), PROT_WRITE, MAP_SHARED, fd, 0);
 
-	if (dest == (void *) -1)
+	if (buffer == (void *) -1)
 		errorExit("Error in mmap:");
 	
-	for (int i = 0; i < 20; i++) {
-		strcpy(source.command, "insert");
+	srand(time(NULL));
+	source.isReady = 0;
+
+	for (int i = 0; i < 100; i++) {
+		index = safeCounterIncrement(buffer);
+		dest = &(buffer->commands[index]);
+
+		while (__atomic_load_n(&(buffer->commands[index].isReady), __ATOMIC_SEQ_CST) == 1) {}		
+		
+		strcpy(source.command, commands[rand() % 3]);
 		source.key = i;
-		source.value = (void *) i;
+		source.value = (void *) getpid();
 		memcpy(dest, &source, sizeof (struct commandBuffer));
-	}
-	for (int i = 0; i < 20; i++) {
-		strcpy(source.command, "get");
-		source.key = i;		
-		memcpy(dest, &source, sizeof (struct commandBuffer));
-	}
-	for (int i = 0; i < 20; i++) {
-		strcpy(source.command, "delete");
-		source.key = i;		
-		memcpy(dest, &source, sizeof (struct commandBuffer));
-	}
-	for (int i = 0; i < 20; i++) {
-		strcpy(source.command, "get");
-		source.key = i;		
-		memcpy(dest, &source, sizeof (struct commandBuffer));
-	}
-	
-	strcpy(source.command, "kill");		
-	memcpy(dest, &source, sizeof (struct commandBuffer));
-	
-	munmap(dest, sizeof(struct commandBuffer));
-	close(fd);
-	shm_unlink(name);
-	
+		__atomic_store_n(&(dest->isReady), 1, __ATOMIC_SEQ_CST);
+		//sleep(1);
+	}	
+
 	return 0;
 }
 
