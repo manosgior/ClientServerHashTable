@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 	
 		while (__atomic_load_n(&(buffer->commands[counter].isReady), __ATOMIC_SEQ_CST) == 0) {
 			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
-			if (end.tv_sec - start.tv_sec >= 10) {
+			if (end.tv_sec - start.tv_sec >= 30) {
 				pthread_mutex_destroy(&(buffer->lock));
 				munmap(buffer, sizeof(struct commandBuffer));
 				close(fd);

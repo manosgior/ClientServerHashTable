@@ -29,9 +29,20 @@ int main(int argc, char **argv) {
 	Buffer *buffer;
 	Command source, *dest;
 	char *commands[3] = {"insert", "get", "delete"};
-	int fd, index;		
+	int fd, index;	
 	
-	fd = shm_open(name, O_RDWR, 0666);	 
+	srand(time(NULL));
+	int tmp = rand() % 100;
+	int op;
+	
+	if (tmp < 50)
+		op = 0;
+	else if (tmp < 76)
+		op = 1;
+	else
+		op = 2;
+	
+ 	fd = shm_open(name, O_RDWR, 0666);	 
 	
 	if (fd < 0)
 		errorExit("Error in shm_open:");
@@ -41,21 +52,21 @@ int main(int argc, char **argv) {
 	if (buffer == (void *) -1)
 		errorExit("Error in mmap:");
 	
-	srand(time(NULL));
+	
 	source.isReady = 0;
 
-	for (int i = 0; i < 500; i++) {
+	for (int i = 0; i < 100; i++) {
 		index = safeCounterIncrement(buffer);
 		dest = &(buffer->commands[index]);
 		
 		while (__atomic_load_n(&(buffer->commands[index].isReady), __ATOMIC_SEQ_CST) == 1) {}		
 		
-		strcpy(source.command, commands[rand() % 3]);
+		strcpy(source.command, commands[op]);
 		source.key = i;
 		source.value = (void *) getpid();
 		memcpy(dest, &source, sizeof (struct commandBuffer));
 		__atomic_store_n(&(dest->isReady), 1, __ATOMIC_SEQ_CST);
-		sleep(0.5);
+		sleep(1);
 	}	
 
 	return 0;
