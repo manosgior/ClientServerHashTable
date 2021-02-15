@@ -36,7 +36,7 @@ Client's algorithm:
 		5. set the key (the loop's index for simplicity)
 		6. set the value (the process' pid for simplicity)
 		7. atomically change the current slot's isReady field to 1
-		8. sleep 1 (convinient with multiple clients, gives time for a person to actually see the server's output)
+		8. sleep 1 (convenient with multiple clients, gives time for a person to actually see the server's output)
 
-Ovsiously the above design choices are arbitrary and could be easily changed/configured 
+Obvsiously the above design choices are arbitrary and could be easily changed/configured 
 e.g. the buffer's size, the client's # of operations, the server's timeout, the hashtable's hash function
