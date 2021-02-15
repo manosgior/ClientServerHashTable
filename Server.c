@@ -49,7 +49,8 @@ int main(int argc, char **argv) {
 	struct timespec start, end;
 
 	if (argc != 2) {
-		fprintf(stderr, "usage: ./server hashtable_size\n");	
+		fprintf(stderr, "usage: ./server hashtable_size\n");
+		return -1;
 	}
 	
 	tb = create(atoi(argv[1]));
