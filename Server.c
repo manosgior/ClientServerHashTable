@@ -48,6 +48,10 @@ int main(int argc, char **argv) {
 	pthread_t thread;
 	struct timespec start, end;
 
+	if (argc != 2) {
+		fprintf(stderr, "usage: ./server hashtable_size\n");	
+	}
+	
 	tb = create(atoi(argv[1]));
 	fd = shm_open(name, O_CREAT | O_RDWR, 0666);
 	ftruncate(fd, sizeof(struct Buffer)); 
