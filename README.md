@@ -9,10 +9,10 @@ If the buffer was large enough (e.g. infinite) a simple atomic increment would s
 Each of "OPS" array's element is a struct of type:
 
 struct commandBuffer {
-	-volatile int isReady; // set to 1 by a client after the completion of memcpy 
-	-char command[8];      // which command to execute {insert, delete, get}
-	-int key;              // the key to {insert, delete, get}
-	-void *value;          // the value to insert
+	volatile int isReady; // set to 1 by a client after the completion of memcpy 
+	char command[8];      // which command to execute {insert, delete, get}
+	int key;              // the key to {insert, delete, get}
+	void *value;          // the value to insert
 };
  
 Server's algorithm:
