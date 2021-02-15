@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <stdint.h>
 #include "Utils.h"
 
 int safeCounterIncrement(Buffer *buffer) {
@@ -29,18 +30,11 @@ int main(int argc, char **argv) {
 	Buffer *buffer;
 	Command source, *dest;
 	char *commands[3] = {"insert", "get", "delete"};
-	int fd, index;	
+	int fd, index;		
+	int op, pid;
+	pid = getpid();
 	
-	srand(time(NULL));
-	int tmp = rand() % 100;
-	int op;
-	
-	if (tmp < 50)
-		op = 0;
-	else if (tmp < 76)
-		op = 1;
-	else
-		op = 2;
+	op = pid % 3;
 	
  	fd = shm_open(name, O_RDWR, 0666);	 
 	
@@ -63,7 +57,7 @@ int main(int argc, char **argv) {
 		
 		strcpy(source.command, commands[op]);
 		source.key = i;
-		source.value = (void *) getpid();
+		source.value = (void *)(uintptr_t) pid;
 		memcpy(dest, &source, sizeof (struct commandBuffer));
 		__atomic_store_n(&(dest->isReady), 1, __ATOMIC_SEQ_CST);
 		sleep(1);

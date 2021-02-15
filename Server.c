@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
+#include <stdint.h>
 #include "HashTable.h"
 #include "Utils.h"
 
@@ -17,23 +18,23 @@ HashTable tb;
 
 void *work(void *arg) {
 	void *value;
-	int counter = (int ) arg;
+	int counter = (int)(uintptr_t) arg;
 
 	if (strcmp(buffer->commands[counter].command, "insert") == 0) {
 		insert(tb, buffer->commands[counter].key, buffer->commands[counter].value);
-		printf("Inserted (%d, %d)\n", buffer->commands[counter].key, (int) buffer->commands[counter].value);
+		printf("Inserted (%d : %d)\n", buffer->commands[counter].key, (int)(uintptr_t) buffer->commands[counter].value);
 	}
 	else if (strcmp(buffer->commands[counter].command, "delete") == 0) {
 		value = delete(tb, buffer->commands[counter].key);
 		if (value != NULL)
-			printf("Deleted (%d, %d)\n", buffer->commands[counter].key, (int) value);
+			printf("Deleted (%d : %d)\n", buffer->commands[counter].key, (int)(uintptr_t) value);
 		else
 			printf("Key %d doesn't exist\n", buffer->commands[counter].key);
 	}
 	else if (strcmp(buffer->commands[counter].command, "get") == 0) {
 		value = get(tb, buffer->commands[counter].key);			
 		if (value != NULL)
-			printf("Got (%d, %d)\n", buffer->commands[counter].key, (int) value);
+			printf("Read (%d : %d)\n", buffer->commands[counter].key, (int)(uintptr_t) value);
 		else
 			printf("Key %d doesn't exist\n", buffer->commands[counter].key);
 	}
@@ -79,7 +80,7 @@ int main(int argc, char **argv) {
 			}
 		}		
 		
-		pthread_create(&thread, NULL, work, (void *) counter);		
+		pthread_create(&thread, NULL, work, (void *)(uintptr_t) counter);		
 
 		if (counter == OPS - 1)
 			counter = 0;
