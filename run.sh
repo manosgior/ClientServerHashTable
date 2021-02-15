@@ -17,4 +17,3 @@ do
 	./client &
 done
 
-make clean
